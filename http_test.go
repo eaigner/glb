@@ -38,6 +38,8 @@ func TestHTTP(t *testing.T) {
 	}()
 	<-ready
 
+	defer lb.Close()
+
 	lbAddr := lb.Addr().String()
 	url := "http://" + lbAddr + ""
 
