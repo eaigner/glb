@@ -18,6 +18,7 @@ func TestHTTPS(t *testing.T) {
 	runHttp(t, makeTlsConf())
 }
 
+// Self signed cert and key
 var tlsCertPem = []byte(`-----BEGIN CERTIFICATE-----
 MIICATCCAWoCCQDHkynjn8YFuTANBgkqhkiG9w0BAQUFADBFMQswCQYDVQQGEwJB
 VTETMBEGA1UECBMKU29tZS1TdGF0ZTEhMB8GA1UEChMYSW50ZXJuZXQgV2lkZ2l0
@@ -49,18 +50,14 @@ YadYcWxVijVglbh2Ip0CQGs+1jV+SrPBo8eX+xXC/Mk5A3BJJyVLyWzeshQwRCje
 -----END RSA PRIVATE KEY-----`)
 
 func makeTlsConf() *tls.Config {
-	c := new(tls.Config)
-	c.InsecureSkipVerify = true
-
-	// Self signed cert and key
 	cert, err := tls.X509KeyPair(tlsCertPem, tlsKeyPem)
 	if err != nil {
 		panic(err)
 	}
-
-	c.Certificates = []tls.Certificate{cert}
-
-	return c
+	return &tls.Config{
+		InsecureSkipVerify: true,
+		Certificates:       []tls.Certificate{cert},
+	}
 }
 
 func runHttp(t *testing.T, tlsConf *tls.Config) {
