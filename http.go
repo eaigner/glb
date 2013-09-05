@@ -15,11 +15,11 @@ type httpBalancer struct {
 	ln          net.Listener
 	tlsConf     *tls.Config
 	balanceFunc HTTPBalanceFunc
-	nodes       []NodeAddr
+	nodes       []string
 }
 
 // HTTPBalanceFunc returns a backend for the incoming request
-type HTTPBalanceFunc func(b []NodeAddr, req *http.Request) NodeAddr
+type HTTPBalanceFunc func(b []string, req *http.Request) string
 
 func NewHTTPBalancer(addr string, tlsConf *tls.Config, f HTTPBalanceFunc) Balancer {
 	if f == nil {
@@ -32,12 +32,12 @@ func NewHTTPBalancer(addr string, tlsConf *tls.Config, f HTTPBalanceFunc) Balanc
 	}
 }
 
-func (b *httpBalancer) SetNodes(nodes []NodeAddr) {
+func (b *httpBalancer) SetNodes(nodes []string) {
 	b.nodeList.set(nodes)
 	b.nodes = b.nodeList.get()
 }
 
-func (b *httpBalancer) AddNode(node NodeAddr) {
+func (b *httpBalancer) AddNode(node string) {
 	b.nodeList.add(node)
 	b.nodes = b.nodeList.get()
 }
@@ -129,10 +129,10 @@ func (b *httpBalancer) handleWebsocket(w http.ResponseWriter, req *http.Request)
 }
 
 type httpRoundRobin struct {
-	lastNode NodeAddr
+	lastNode string
 }
 
-func (rr *httpRoundRobin) balance(nodes []NodeAddr, req *http.Request) NodeAddr {
+func (rr *httpRoundRobin) balance(nodes []string, req *http.Request) string {
 	return roundRobin(nodes, &rr.lastNode)
 }
 

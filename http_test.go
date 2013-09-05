@@ -81,8 +81,8 @@ func runHttp(t *testing.T, tlsConf *tls.Config) {
 	addr2 := srv2.Listener.Addr().String()
 
 	lb := NewHTTPBalancer("127.0.0.1:0", tlsConf, NewHTTPRoundRobin())
-	lb.AddNode(NodeAddr(addr1))
-	lb.AddNode(NodeAddr(addr2))
+	lb.AddNode(addr1)
+	lb.AddNode(addr2)
 
 	ready := make(chan bool)
 	go func() {

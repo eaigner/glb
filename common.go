@@ -6,17 +6,15 @@ import (
 	"sync"
 )
 
-type NodeAddr string
-
 type Balancer interface {
-	SetNodes(nodes []NodeAddr)
-	AddNode(node NodeAddr)
+	SetNodes(nodes []string)
+	AddNode(node string)
 	Addr() net.Addr
 	Serve(ready chan bool) error
 	Close() error
 }
 
-func roundRobin(b []NodeAddr, last *NodeAddr) NodeAddr {
+func roundRobin(b []string, last *string) string {
 	switch len(b) {
 	case 0:
 		return ""
@@ -40,43 +38,34 @@ func copyAndClose(wc io.WriteCloser, r io.Reader) {
 }
 
 type nodeList struct {
-	nodes   []NodeAddr
-	nodeMap map[NodeAddr]int
-	nodeMtx sync.Mutex
+	mtx   sync.Mutex
+	nodes map[string]int
 }
 
-func (l *nodeList) get() []NodeAddr {
-	l.nodeMtx.Lock()
-	defer l.nodeMtx.Unlock()
-	v := make([]NodeAddr, len(l.nodes))
-	copy(v, l.nodes)
-
-	return v
+func (l *nodeList) get() []string {
+	l.mtx.Lock()
+	defer l.mtx.Unlock()
+	a := make([]string, 0, len(l.nodes))
+	for n, _ := range l.nodes {
+		a = append(a, n)
+	}
+	return a
 }
 
-func (l *nodeList) set(nodes []NodeAddr) {
-	l.nodeMtx.Lock()
-	defer l.nodeMtx.Unlock()
-	l.nodeMap = make(map[NodeAddr]int)
-	l.nodes = nil
-	for _, n := range nodes {
-		_, ok := l.nodeMap[n]
-		if !ok {
-			l.nodeMap[n] = 1
-			l.nodes = append(l.nodes, n)
-		}
+func (l *nodeList) set(ns []string) {
+	l.mtx.Lock()
+	defer l.mtx.Unlock()
+	l.nodes = make(map[string]int)
+	for _, n := range ns {
+		l.nodes[n] = 1
 	}
 }
 
-func (l *nodeList) add(node NodeAddr) {
-	l.nodeMtx.Lock()
-	defer l.nodeMtx.Unlock()
-	if l.nodeMap == nil {
-		l.nodeMap = make(map[NodeAddr]int)
+func (l *nodeList) add(n string) {
+	l.mtx.Lock()
+	defer l.mtx.Unlock()
+	if l.nodes == nil {
+		l.nodes = make(map[string]int)
 	}
-	_, ok := l.nodeMap[node]
-	if !ok {
-		l.nodeMap[node] = 1
-		l.nodes = append(l.nodes, node)
-	}
+	l.nodes[n] = 1
 }

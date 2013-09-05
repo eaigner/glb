@@ -10,11 +10,11 @@ type tcpBalancer struct {
 	addr        string
 	ln          net.Listener
 	balanceFunc TCPBalanceFunc
-	nodes       []NodeAddr
+	nodes       []string
 }
 
 // TCPBalanceFunc returns a backend for the incoming connection.
-type TCPBalanceFunc func(nodes []NodeAddr, conn net.Conn) NodeAddr
+type TCPBalanceFunc func(nodes []string, conn net.Conn) string
 
 func NewTCPBalancer(addr string, f TCPBalanceFunc) Balancer {
 	if f == nil {
@@ -26,12 +26,12 @@ func NewTCPBalancer(addr string, f TCPBalanceFunc) Balancer {
 	}
 }
 
-func (b *tcpBalancer) SetNodes(nodes []NodeAddr) {
+func (b *tcpBalancer) SetNodes(nodes []string) {
 	b.nodeList.set(nodes)
 	b.nodes = b.nodeList.get()
 }
 
-func (b *tcpBalancer) AddNode(node NodeAddr) {
+func (b *tcpBalancer) AddNode(node string) {
 	b.nodeList.add(node)
 	b.nodes = b.nodeList.get()
 }
@@ -80,10 +80,10 @@ func (b *tcpBalancer) handleConn(src net.Conn) {
 }
 
 type tcpRoundRobin struct {
-	lastNode NodeAddr
+	lastNode string
 }
 
-func (rr *tcpRoundRobin) balance(nodes []NodeAddr, conn net.Conn) NodeAddr {
+func (rr *tcpRoundRobin) balance(nodes []string, conn net.Conn) string {
 	return roundRobin(nodes, &rr.lastNode)
 }
 
