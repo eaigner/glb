@@ -46,12 +46,7 @@ func (b *httpBalancer) Addr() net.Addr {
 	return b.ln.Addr()
 }
 
-func (b *httpBalancer) Serve(ready chan bool) error {
-	defer func() {
-		if ready != nil {
-			ready <- true
-		}
-	}()
+func (b *httpBalancer) Listen() error {
 	var err error
 	b.ln, err = net.Listen("tcp", b.addr)
 	if err != nil {
@@ -60,14 +55,23 @@ func (b *httpBalancer) Serve(ready chan bool) error {
 	if b.tlsConf != nil {
 		b.ln = tls.NewListener(b.ln, b.tlsConf)
 	}
+	return nil
+}
+
+func (b *httpBalancer) Serve() error {
 	srv := &http.Server{
 		Addr:    b.addr,
 		Handler: http.HandlerFunc(b.handleConn),
 	}
-	if ready != nil {
-		ready <- true
-	}
 	return srv.Serve(b.ln)
+}
+
+func (b *httpBalancer) ListenAndServe() error {
+	err := b.Listen()
+	if err != nil {
+		return err
+	}
+	return b.Serve()
 }
 
 func (b *httpBalancer) Close() error {

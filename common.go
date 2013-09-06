@@ -10,7 +10,9 @@ type Balancer interface {
 	SetNodes(nodes []string)
 	AddNode(node string)
 	Addr() net.Addr
-	Serve(ready chan bool) error
+	Listen() error
+	Serve() error
+	ListenAndServe() error
 	Close() error
 }
 

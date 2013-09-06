@@ -86,9 +86,18 @@ func runHttp(t *testing.T, tlsConf *tls.Config) {
 
 	ready := make(chan bool)
 	go func() {
-		err := lb.Serve(ready)
+		err := lb.Listen()
 		if err != nil {
-			panic(err)
+			t.Log(err)
+			ready <- true
+			return
+		}
+
+		ready <- true
+
+		err = lb.Serve()
+		if err != nil {
+			t.Log(err)
 		}
 	}()
 	<-ready

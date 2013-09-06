@@ -40,20 +40,13 @@ func (b *tcpBalancer) Addr() net.Addr {
 	return b.ln.Addr()
 }
 
-func (b *tcpBalancer) Serve(ready chan bool) error {
-	defer func() {
-		if ready != nil {
-			ready <- true
-		}
-	}()
+func (b *tcpBalancer) Listen() error {
 	var err error
 	b.ln, err = net.Listen("tcp", b.addr)
-	if err != nil {
-		return err
-	}
-	if ready != nil {
-		ready <- true
-	}
+	return err
+}
+
+func (b *tcpBalancer) Serve() error {
 	for {
 		conn, err := b.ln.Accept()
 		if err != nil {
@@ -61,6 +54,15 @@ func (b *tcpBalancer) Serve(ready chan bool) error {
 		}
 		go b.handleConn(conn)
 	}
+	return nil
+}
+
+func (b *tcpBalancer) ListenAndServe() error {
+	err := b.Listen()
+	if err != nil {
+		return err
+	}
+	return b.Serve()
 }
 
 func (b *tcpBalancer) Close() error {
