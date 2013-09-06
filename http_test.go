@@ -88,7 +88,7 @@ func runHttp(t *testing.T, tlsConf *tls.Config) {
 	go func() {
 		err := lb.Serve(ready)
 		if err != nil {
-			t.Fatal(err)
+			panic(err)
 		}
 	}()
 	<-ready
