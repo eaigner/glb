@@ -14,7 +14,12 @@ type Balancer interface {
 	Close() error
 }
 
+var rrMtx sync.Mutex
+
 func roundRobin(b []string, last *string) string {
+	rrMtx.Lock()
+	defer rrMtx.Unlock()
+
 	switch len(b) {
 	case 0:
 		return ""
