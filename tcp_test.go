@@ -76,12 +76,7 @@ func TestTCP(t *testing.T) {
 	a := make([]string, 0, 3)
 
 	send := func(msg string) {
-		tcpAddr, err := net.ResolveTCPAddr("tcp", lbAddr)
-		if err != nil {
-			panic(err)
-		}
-
-		conn, err := net.DialTCP("tcp", nil, tcpAddr)
+		conn, err := net.Dial("tcp", lbAddr)
 		if err != nil {
 			panic(err)
 		}
